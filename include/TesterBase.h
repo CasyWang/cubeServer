@@ -25,9 +25,9 @@ THE SOFTWARE.
 
 #include <string>
 #include <iostream>
+
 namespace cubeServer
 {
-
     class TesterBase
     {
     public:
@@ -35,18 +35,27 @@ namespace cubeServer
         ~TesterBase() {};
 
         /* 需要派生类重写的虚函数 */
-        virtual void DoBurnIcBootLoader() {};                  //烧录单板BootLoader
-        virtual void DoBurnIfceBootLoader() {};                //烧录接口IC BootLoader
-        virtual void DoBurnTestingFw() {};                     //烧录测试固件
-        virtual void DoBurnFactoryFw() {};                     //烧录出厂固件
-        virtual void HandShake() {};                           //同CoreController握手
+        virtual void DoBurnIcBootLoader() {};                  /* 烧录单板BootLoader */
+        virtual void DoBurnIfceBootLoader() {};                /* 烧录接口IC BootLoader */
+        virtual void DoBurnTestingFw() {};                     /* 烧录测试固件 */
+        virtual void DoBurnFactoryFw() {};                     /* 烧录出厂固件 */
+
+        virtual void ReverseBoardElecLevel() = 0;               /* 翻转待测单板电平 */
+        virtual void TestIo() = 0;                              /* 测试单板IO */
+        virtual void TestUart() = 0;                            /* 测试单板UART */
+
+        virtual void HandShake() = 0;                           /* 同CoreController握手 */
+        virtual void LoadYaml() = 0;                            /* 加载yaml配置文件 */
 
         /* 不需要重写的函数 */
+        //virtual void SetController(CoreController *c) {};       /* 设置本测试平台的控制器句柄 */
+
 
     protected:
     private:
-        std::string avrduePath;                                 //avrdue路径
-        bool PlatformState;                                     //平台运行状态
+        std::string avrduePath;                                 /* avrdue路径 */
+
+        volatile static bool PlatformState;                     /* 平台运行状态 */
     };
 
     /*

@@ -20,57 +20,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-#ifndef MAINBOARDTESTER_H
-#define MAINBOARDTESTER_H
 
-#include "TesterBase.h"
-#include "Protocol.h"
-#include <iostream>
+#ifndef QUEUE_H
+#define QUEUE_H
 
-namespace cubeServer
+#include "boost/thread/mutex.hpp"
+
+/* A loop queue implementation */
+class Queue
 {
-    struct CallBack {
-
-    };
-    class MainBoardTester : public TesterBase
-    {
     public:
-        MainBoardTester();
-        virtual ~MainBoardTester();
+        Queue(int Size);
+        virtual ~Queue();
+        int AvailableRead();                                    /* Return the Available size */
+        int AvailableWrite();                                   /* return the free size */
+        int Pop(char *dest, int len);                           /* Pop up len's byte into dest */
+        int Push(char *src, int len);                           /* Push len bytes from src into queue */
+        int Read(char *dest, int len);                          /* Read */
 
-        /* 重写基类方法 */
-        void HandShake()
-        {
-            std::cout << "hand shake--->" << std::endl;
-        }
-
-        void Init() {
-
-        }
-
-        void ReverseBoardElecLevel() {
-            /* 触发中断,翻转待测单板的电平 */
-            apimsg_t msg;
-            //this->controller->sendApiMessage(&msg);
-        }
-
-        void TestIo() {
-
-        }
-
-        void TestUart() {
-
-        }
-
-        void LoadYaml() {
-
-        }
-
-    protected:
     private:
-        int (*callback_send)(apimsg_t *msg);            /* 传入的callback,向主控发送报文 */
-        apimsg_t (*callback_receive)();                 /* 穿入的callback,接收主控报文 */
-    };
-}
+        char *QueueBuf;        /* Memory pool for the queue */
+        int QueueSize;         /* Queue Size */
+        int queueTail;         /* Queue tail */
+        int queueFront;        /* Queue front */
+        boost::mutex mtx;      /* Boost mutex */
+};
 
-#endif // MAINBOARDTESTER_H
+#endif // QUEUE_H
