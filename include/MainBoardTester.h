@@ -29,9 +29,9 @@ THE SOFTWARE.
 
 namespace cubeServer
 {
-    struct CallBack {
+    typedef int (*callback_send)(apimsg_t *msg);
+    typedef apimsg_t (*callback_receive)(void);
 
-    };
     class MainBoardTester : public TesterBase
     {
     public:
@@ -44,18 +44,20 @@ namespace cubeServer
             std::cout << "hand shake--->" << std::endl;
         }
 
-        void Init() {
-
+        void Init(callback_send s, callback_receive r) {
+            send = s;
+            receive = r;
         }
 
         void ReverseBoardElecLevel() {
             /* 触发中断,翻转待测单板的电平 */
             apimsg_t msg;
-            //this->controller->sendApiMessage(&msg);
+            send(&msg);
         }
 
         void TestIo() {
-
+            apimsg_t msg;
+            send(&msg);
         }
 
         void TestUart() {
@@ -68,8 +70,8 @@ namespace cubeServer
 
     protected:
     private:
-        int (*callback_send)(apimsg_t *msg);            /* 传入的callback,向主控发送报文 */
-        apimsg_t (*callback_receive)();                 /* 穿入的callback,接收主控报文 */
+        callback_send send;            /* 传入的callback,向主控发送报文 */
+        callback_receive receive;      /* 穿入的callback,接收主控报文 */
     };
 }
 
