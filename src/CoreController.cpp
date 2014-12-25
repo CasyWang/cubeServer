@@ -61,37 +61,22 @@ namespace cubeServer
     }
 
     /* Must Initialize before using */
-    void CoreController::Init() {
+    void CoreController::Init(PrepareFile func) {
         uartQueue = new Queue(uartQueueSize);               /* 在堆上给Queue分配内存 */
         socketQueue = new Queue(socketQueueSize);
+        this->GetYaml = func;
     }
 
-    void CoreController::UnitTest_Push() {
-        int i;
-        for(i = 0; i < 600; i++) {
-            char random = 1 + rand() % 100;
-            uartQueue->Push(&random, sizeof(char));
-            std::cout << "push" << i << ":" << (int)random << std::endl;
-            std::cout << "pw" << i << ":" << uartQueue->AvailableWrite() << std::endl;
-        }
-    }
 
-    void CoreController::UnitTest_Pop() {
-        int i;
-        for(i = 0; i < 600; i++) {
-            char buf;
-            uartQueue->Pop(&buf, sizeof(char));
-            std::cout << "pop" << i << ":" << (int)buf << std::endl;
-            std::cout << "pr" << i << ":" << uartQueue->AvailableRead() << std::endl;
-        }
-    }
     /* ======================= Private: ======================== */
 
     /* Core Controller's main state machine thread */
     void CoreController::MainTask() {
+        /* Get configure file at the very beginning */
+        this->GetYaml();          /* 注意文件root路径 */
         while(1) {
             //Tester->HandShake();
-            UnitTest_Push();
+            std::cout << "main task" << std::endl;
             boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
         }
     }
@@ -106,7 +91,7 @@ namespace cubeServer
 
     void CoreController::RecvMsgRawTask() {
         while(1) {
-            UnitTest_Pop();
+
             boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
         }
     }
@@ -127,6 +112,29 @@ namespace cubeServer
     apimsg_t CoreController::ReceiveApiMessage() {
 
     }
-}
+
+
+    /**< UnitTest */
+        void CoreController::UnitTest_Push() {
+        int i;
+        for(i = 0; i < 600; i++) {
+            char random = 1 + rand() % 100;
+            uartQueue->Push(&random, sizeof(char));
+            std::cout << "push" << i << ":" << (int)random << std::endl;
+            std::cout << "pw" << i << ":" << uartQueue->AvailableWrite() << std::endl;
+        }
+    }
+
+    void CoreController::UnitTest_Pop() {
+        int i;
+        for(i = 0; i < 600; i++) {
+            char buf;
+            uartQueue->Pop(&buf, sizeof(char));
+            std::cout << "pop" << i << ":" << (int)buf << std::endl;
+            std::cout << "pr" << i << ":" << uartQueue->AvailableRead() << std::endl;
+        }
+    }
+
+} //Namespace
 
 

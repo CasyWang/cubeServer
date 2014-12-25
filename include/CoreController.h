@@ -30,6 +30,7 @@ THE SOFTWARE.
 
 namespace cubeServer
 {
+    typedef void (*PrepareFile)();        /* Used for getting configuration file from server */
     class CoreController
     {
     public:
@@ -39,12 +40,15 @@ namespace cubeServer
         void Stop();                                                 /* 停止控制器 */
         void Suspend();                                              /* 暂时挂起 */
         void Join();                                                 /* 等待线程 */
-        void Init();                                                 /* 控制器初始化 */
+        void Init(PrepareFile func);                                 /* 控制器初始化 */
         int SendApiMessage(apimsg_t *msg);	                         /* 发送Api报文 */
         apimsg_t ReceiveApiMessage();                                /* 从Queue中读取一个包 */
         void SetQueueSize(int socketQSize, int uartQSize);           /* 设置串口缓冲区大小 */
         void UnitTest_Push();
         void UnitTest_Pop();
+
+        PrepareFile GetYaml;                      /* 由ftp获取所有准备文件 */
+
     protected:
     private:
         boost::thread mainThread;                 /* 主线程 */
@@ -64,6 +68,7 @@ namespace cubeServer
         bool msgIsValid();                        /* 消息报文校验 */
         apimsg_t parseApiMessage();               /* 解析报文 */
         void listenForClient();                   /* 等待控制Client端连接 */
+
     };
 
 }
