@@ -61,10 +61,10 @@ namespace cubeServer
     }
 
     /* Must Initialize before using */
-    void CoreController::Init(PrepareFile func) {
+    void CoreController::Init(FtpClient *client) {
         uartQueue = new Queue(uartQueueSize);               /* 在堆上给Queue分配内存 */
         socketQueue = new Queue(socketQueueSize);
-        this->GetYaml = func;
+        this->ftpClient = client;
     }
 
 
@@ -72,10 +72,18 @@ namespace cubeServer
 
     /* Core Controller's main state machine thread */
     void CoreController::MainTask() {
+
+        /* @TODO: Tell controller what kind of file tester want in K/V pair */
         /* Get configure file at the very beginning */
-        this->GetYaml();          /* 注意文件root路径 */
+        vector<string> vectBoard;
+        vectBoard.push_back("mbed_v1");
+        vectBoard.push_back("seeeduino_v3");
+        vectBoard.push_back("ArduberryFW");
+
+        GetFileFromServer(vectBoard, HEX_T);
+        GetFileFromServer(vectBoard, YAML_T);
+
         while(1) {
-            //Tester->HandShake();
             std::cout << "main task" << std::endl;
             boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
         }
@@ -113,6 +121,73 @@ namespace cubeServer
 
     }
 
+    /** \brief    Get recommended file from ftp
+     *
+     * \param     vectBoard       the configure file list want to download
+     * \param     type            file type
+     * \return    none
+     *
+     */
+    void CoreController::GetFileFromServer(vector<string> &vectBoard, file_t type) {
+
+        string extension = "";
+        if(type == BIN_T) {
+            extension = ".bin";
+        } else if(type == HEX_T) {
+            extension = ".hex";
+        } else if(type == YAML_T) {
+            extension = ".yaml";
+        }
+
+        /* Check if exist already */
+        string strRelativePath = this->ftpClient->GetRelativePath(type);
+        fs::path p(strRelativePath);
+        vector<fs::path> vectExist;
+        GetSpecifiedFiles(p, extension, vectExist);        /* find all match the condition */
+
+        /* Download */
+        for(vector<string>::iterator iter = vectBoard.begin(); iter != vectBoard.end(); iter++) {
+            string strFile = *iter + extension;            /* Something like: mbed_v1.bin */
+            /* Search exist item */
+            fs::path p(strFile);
+            if(std::find(vectExist.begin(), vectExist.end(), p) == vectExist.end()){
+                /* Can't find it, download from server */
+                std::cout << "starting download " << strFile << "..." << std::endl;
+                if((this->ftpClient != NULL) &&
+                   (this->ftpClient->FtpDownloadFile(strFile, type) != false )) {
+                    std::cout << "download successfully." << std::endl;
+                } else {
+                    fprintf(stderr, "fail to download %s.\n", strFile.c_str());
+                }
+            }
+        }
+    }
+
+
+    /** \brief   Get all the files with the specified extension
+     *
+     * \param    root    search path
+     * \param    ext     file extension
+     * \param    ret     files match the condition
+     * \return
+     *
+     */
+    void CoreController::GetSpecifiedFiles(const fs::path &root, const string &ext, vector<fs::path> &ret) {
+
+        /* If path is not exist or not a directory */
+        if(!fs::exists(root) || !fs::is_directory(root))
+            return;
+
+        fs::recursive_directory_iterator it(root);
+        fs::recursive_directory_iterator endit;
+
+        while(it != endit) {
+            if(fs::is_regular_file(*it) && it->path().extension() == ext) {
+                ret.push_back(it->path().filename());
+            }
+            ++it;
+        }
+    }
 
     /**< UnitTest */
         void CoreController::UnitTest_Push() {

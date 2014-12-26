@@ -71,26 +71,32 @@ void FtpClient::SetAuthorityAccount(const string &user, const string &pwr) {
  * \return  none
  *
  */
-void FtpClient::SetRelativePath(const string &path) {
-    this->relativePath = path;
+void FtpClient::SetRelativePath(const string &path_yaml, const string &path_fw) {
+    this->relativePathYaml = path_yaml;
+    this->relativePathFw = path_fw;
 }
 
 /** \brief   Download a file from server
  *
  * \param    filename file name, relative path
- * \param
- * \return
+ * \param    type     file type, indicate where to write
+ * \return   true if ok/false if error
  *
  */
-bool FtpClient::FtpDownloadFile(const string &filename) {
+bool FtpClient::FtpDownloadFile(const string &filename, file_t type) {
+
+    /* Verify */
+    if(filename.length() == 0 || type < BIN_T || type > YAML_T)
+        return false;
+
     bool ret = false;
     CURL *curl;
     CURLcode res;
-    struct FtpFile ftpFile = {
-        filename,
-        this->relativePath,
-        NULL
-    };
+
+    struct FtpFile ftpFile;
+    ftpFile.filename = filename;
+    ftpFile.path = (type == YAML_T) ? this->relativePathYaml : this->relativePathFw;
+    ftpFile.stream = NULL;
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();                                                    /* Get a curl object */
@@ -126,6 +132,22 @@ bool FtpClient::FtpDownloadFile(const string &filename) {
     curl_global_cleanup();
 
     return ret;
+}
+
+/** \brief    Get relative path according to file type
+ *
+ * \param     type   file type
+ * \param
+ * \return    relative path
+ *
+ */
+string FtpClient::GetRelativePath(file_t type) {
+    if(type == YAML_T) {
+        return this->relativePathYaml;
+    }
+    else {
+        return this->relativePathFw;
+    }
 }
 
 /**< Private function */

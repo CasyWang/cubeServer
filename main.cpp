@@ -40,11 +40,12 @@ const string gFtpUrl = "ftp://104.128.82.197";      /* Ftp Server */
 const string gYaml = "test1.txt";
 const string gFtpUser = "ftpadmin";
 const string gFtpPwr = "1234";
-const string gRelativePath = "../../yaml/";
+const string gRelativePathYaml = "../../yaml/";
+const string gRelativePathFw = "../../firmware/";
 
 void Help();
 bool isValidIp(char *ip, int len);
-void GetYamlFromServer();
+void GetFileFromServer(vector<string> &vectBoard, file_t type);
 
 int main(int argc, char **argv)
 {
@@ -52,11 +53,15 @@ int main(int argc, char **argv)
     bool bEnableRpc = false;                /* enable rpc */
     char *ftpUrl = NULL;                    /* Ftp server address */
 
+    FtpClient ftpClient;                                  /* Get a Instance */
+
+    ftpClient.SetFtpAddress(gFtpUrl);                     /* Server URL */
+    ftpClient.SetAuthorityAccount(gFtpUser, gFtpPwr);     /* Account */
+    ftpClient.SetRelativePath(gRelativePathYaml, gRelativePathFw);    /* Where to save those file */
+
     cubeServer::MainBoardTester tester;
     cubeServer::CoreController controller(tester);
-    controller.Init(GetYamlFromServer);
-
-    //GetYamlFromServer();
+    controller.Init(&ftpClient);
 
     if(argc < 2) {
         Help();
@@ -97,77 +102,6 @@ int main(int argc, char **argv)
 }
 
 /**< Private function */
-
-/** \brief   Get all the files with the specified extension
- *
- * \param    root    search path
- * \param    ext     file extension
- * \param    ret     files match the condition
- * \return
- *
- */
-void GetSpecifiedFiles(const fs::path &root, const string &ext, vector<fs::path> &ret) {
-
-    /* If path is not exist or not a directory */
-    if(!fs::exists(root) || !fs::is_directory(root))
-        return;
-
-    fs::recursive_directory_iterator it(root);
-    fs::recursive_directory_iterator endit;
-
-    while(it != endit) {
-        if(fs::is_regular_file(*it) && it->path().extension() == ext) {
-            ret.push_back(it->path().filename());
-        }
-        ++it;
-    }
-}
-
-/** \brief    Get configure file from ftp
- *
- * \param     none
- * \param     none
- * \return    none
- *
- */
-void GetYamlFromServer() {
-
-    /* A Demo Implementation */
-    vector<string> vectBoard;
-    vectBoard.push_back("mbed_v1");
-    vectBoard.push_back("seeeduino_v3");
-
-    /* Check if already exist */
-    fs::path p(gRelativePath);
-    vector<fs::path> vectExist;
-
-    GetSpecifiedFiles(p, ".yaml", vectExist);
-
-    int i;
-    for(i = 0; i < vectExist.size(); i++) {
-        cout << vectExist[i] << endl;
-    }
-
-    FtpClient ftpClient;                                /* Make a Instance */
-
-    ftpClient.SetFtpAddress(gFtpUrl);                   /* Set the server address */
-    ftpClient.SetAuthorityAccount(gFtpUser, gFtpPwr);   /* Set account */
-    ftpClient.SetRelativePath(gRelativePath);           /* Save to which path */
-
-    for(vector<string>::iterator iter = vectBoard.begin(); iter != vectBoard.end(); iter++) {
-        string strFile = *iter + ".yaml";
-        /* Search exist item */
-        fs::path p(strFile);
-        if(std::find(vectExist.begin(), vectExist.end(), p) == vectExist.end()){
-            /* Can't find, download from server */
-            cout << "starting download " << strFile << "..." <<endl;
-            if(!ftpClient.FtpDownloadFile(strFile)) {
-                fprintf(stderr, "fail to download %s.", strFile.c_str());
-            }
-        }
-    }
-}
-
 
 void Help() {
     std::cout << "Usage:" << std::endl;

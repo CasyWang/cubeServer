@@ -23,14 +23,27 @@ THE SOFTWARE.
 #ifndef CORECONTROLLER_H
 #define CORECONTROLLER_H
 
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
 #include "TesterBase.h"
 #include "Protocol.h"
-#include "boost/thread/thread.hpp"
 #include "Queue.h"
+#include "FtpClient.h"
+#include "boost/thread/thread.hpp"
+#include "boost/filesystem.hpp"
+
+
+namespace fs = ::boost::filesystem;
+
+#define BOOST_FILESYSTEM_VERSION 3
+#define BOOST_FILESYSTEM_NO_DEPRECATED
 
 namespace cubeServer
 {
-    typedef void (*PrepareFile)();        /* Used for getting configuration file from server */
+
     class CoreController
     {
     public:
@@ -40,14 +53,12 @@ namespace cubeServer
         void Stop();                                                 /* 停止控制器 */
         void Suspend();                                              /* 暂时挂起 */
         void Join();                                                 /* 等待线程 */
-        void Init(PrepareFile func);                                 /* 控制器初始化 */
+        void Init(FtpClient *client);                                /* 控制器初始化 */
         int SendApiMessage(apimsg_t *msg);	                         /* 发送Api报文 */
         apimsg_t ReceiveApiMessage();                                /* 从Queue中读取一个包 */
         void SetQueueSize(int socketQSize, int uartQSize);           /* 设置串口缓冲区大小 */
         void UnitTest_Push();
         void UnitTest_Pop();
-
-        PrepareFile GetYaml;                      /* 由ftp获取所有准备文件 */
 
     protected:
     private:
@@ -56,6 +67,7 @@ namespace cubeServer
         boost::thread msgThread;                  /* 串口消息报文接收线程 */
 
         TesterBase *Tester;                       /* 当前控制的测试平台 */
+        FtpClient *ftpClient;                     /* FtpClient */
         Queue *uartQueue;                         /* 异步串口环形缓冲 */
         int uartQueueSize;                        /* 串口缓冲大小 */
         Queue *socketQueue;                       /* 异步套接字环形缓冲 */
@@ -68,7 +80,8 @@ namespace cubeServer
         bool msgIsValid();                        /* 消息报文校验 */
         apimsg_t parseApiMessage();               /* 解析报文 */
         void listenForClient();                   /* 等待控制Client端连接 */
-
+        void GetFileFromServer(vector<string> &vectBoard, file_t type);    /* 从FTP服务器获取缺失的文件 */
+        void GetSpecifiedFiles(const fs::path &root, const string &ext, vector<fs::path> &ret);    /* 获取某路径下的指定类型文件 */
     };
 
 }
