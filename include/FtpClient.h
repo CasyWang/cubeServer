@@ -53,8 +53,8 @@ class FtpClient
         FtpClient();
         virtual ~FtpClient();
 
-        void SetFtpAddress(const string &url);                               /* Set the ftp server address, Must call before using */
-        void SetAuthorityAccount(const string &user, const string &pwr);     /* Set the ftp account */
+        void SetFtpAddress(const string &url);                                 /* Set the ftp server address, Must call before using */
+        void SetAuthorityAccount(const string &user, const string &pwr);       /* Set the ftp account */
         void SetRelativePath(const string &path_yaml, const string &path_fw);
         bool FtpDownloadFile(const string &filename, file_t type);               /* Download a file from server */
         bool FtpUploadFile(const string &filename);                              /* Upload a file to the server */

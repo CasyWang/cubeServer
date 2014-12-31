@@ -21,20 +21,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#define _WIN32_WINNT 0x501
+
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
 #include "string.h"
 
+/* For mDNS */
+#include "mdnsAdvertiser.h"
+
+
+
 #include "CoreController.h"
 #include "MainBoardTester.h"
 #include "FtpClient.h"
-#include "boost/filesystem.hpp"
+#include "boost/program_options.hpp"
 
-namespace fs = ::boost::filesystem;
+namespace po = ::boost::program_options;
 
-#define BOOST_FILESYSTEM_VERSION 3
-#define BOOST_FILESYSTEM_NO_DEPRECATED
+
+string FtpUrl = "";                                 /* Waiting user input */
+string FtpUser = "";
+string FtpPwr = "";
+int ServerPort = 0;                                 /* Socket port server listening */
+bool gWithSSL = false;
 
 const string gFtpUrl = "ftp://104.128.82.197";      /* Ftp Server */
 const string gYaml = "test1.txt";
@@ -45,74 +56,88 @@ const string gRelativePathFw = "../../firmware/";
 
 void Help();
 bool isValidIp(char *ip, int len);
-void GetFileFromServer(vector<string> &vectBoard, file_t type);
+static bool ParseCmdLine(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
-    bool bEnableLog = false;                /* enable stdout log */
-    bool bEnableRpc = false;                /* enable rpc */
-    char *ftpUrl = NULL;                    /* Ftp server address */
-
-    FtpClient ftpClient;                                  /* Get a Instance */
-
-    ftpClient.SetFtpAddress(gFtpUrl);                     /* Server URL */
-    ftpClient.SetAuthorityAccount(gFtpUser, gFtpPwr);     /* Account */
-    ftpClient.SetRelativePath(gRelativePathYaml, gRelativePathFw);    /* Where to save those file */
-
-    cubeServer::MainBoardTester tester;
-    cubeServer::CoreController controller(tester);
-    controller.Init(&ftpClient);
-
-    if(argc < 2) {
-        Help();
-        return 0;
+    if(!ParseCmdLine(argc, argv)) {
+        return 1;
     }
-    int i = 1;
-    for(; i < argc; i++) {
-        int len = strlen(argv[i]);
-        /*
-          enable log
-          express1 && express2: if express1 is false, express2 will be ignored
-        */
-        if(strstr(argv[i], "--with-log=") &&
-            (len == strlen("--with-log=0"))) {
-               bEnableLog = (atoi(argv[i] + len - 1) == 1) ? true : false;
-        }
-        else if(strstr(argv[i], "--with-rpc=") &&
-            (len == strlen("--with-rpc=0"))) {
-               bEnableRpc = (atoi(argv[i] + len - 1) == 1) ? true : false;
-        }
-        else if(strstr(argv[i], "--server=") &&
-            (len > strlen("--server="))) {
-             ftpUrl = argv[i] + strlen("--server=");
-             std::cout << ftpUrl << std::endl;
-             if(!FtpClient::isValidIp(ftpUrl, strlen(argv[i]) - strlen("--server="))) {
-                 fprintf(stderr, "ftp url is invalid\n");
-                 return 0;
-             }
-        }
-        else if(strstr(argv[i], "--start")) {
-            controller.Start();
-            controller.Join();
-        }
-        else {
-            Help();
-        }
+
+    try {
+
+        boost::asio::io_service io_service;
+        mdns::mdnsAdvertiser advertiser(io_service);
+        io_service.run();
+
+        FtpClient ftpClient;                                  /* Get a Instance */
+
+        ftpClient.SetFtpAddress(FtpUrl);                      /* Server URL */
+        ftpClient.SetAuthorityAccount(FtpUser, FtpPwr);       /* Account */
+        ftpClient.SetRelativePath(gRelativePathYaml, gRelativePathFw);    /* Where to save those file */
+
+        cubeServer::MainBoardTester tester;
+        cubeServer::CoreController controller(tester);
+        controller.Init(&ftpClient);
+
+        controller.Start();                 /* Start controller */
+        controller.Join();                  /* Main thread waiting children thread */
     }
+    catch(exception& e) {
+        std::cerr << "err: " << e.what() << std::endl;
+    }
+
+    return 0;
 }
 
 /**< Private function */
 
-void Help() {
-    std::cout << "Usage:" << std::endl;
-    std::cout << "    --help              to show this help." << std::endl;
-    std::cout << "    --server=...        specified the server address." << std::endl;
-    std::cout << "    --start             start the cubeServer controller." << std::endl;
-    std::cout << "    --with-rpc=...      whether to use rpc" << std::endl;
-    std::cout << "    --platver=...       testing platform version" << std::endl;
-    std::cout << "    --enable-log=...    whether to enable log output" << std::endl;
-    std::cout << "  eg: cubeServer --enable-log=1 --start" << std::endl;
+
+static bool ParseCmdLine(int argc, char **argv) {
+    try {
+        po::options_description desc("Allowed options");
+        desc.add_options()
+            ("help", "produce this help message.")
+            ("with-ssl", po::value<int>(), "enable ssl security.")
+            ("ftp-url", po::value<string>(&FtpUrl)->default_value(gFtpUrl), "set the ftp address.")
+            ("ftp-user", po::value<string>(&FtpUser)->default_value(gFtpUser), "set the ftp username.")
+            ("ftp-password", po::value<string>(&FtpPwr)->default_value(gFtpPwr), "set the ftp password.")
+            ("port", po::value<int>(&ServerPort)->default_value(8080), "server listening port.")
+            ("with-log", po::value<int>(), "enable log output.");
+
+        po::variables_map vm;
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+
+        /*
+        the vm can be used just like std::map, except that the values
+        store there must be retrieved with the 'as' method
+        */
+        if(vm.count("help")) {
+            std::cout << desc << std::endl;
+            exit(0);                               /* Any time we call help, will not start program */
+        }
+
+        if(vm.count("with-ssl")) {
+            std::cout << "with-ssl set to " << vm["with-ssl"].as<int>() << std::endl;
+        }
+
+        if(vm.count("ftp-url")) {
+            std::cout << "ftp-url set to " << vm["ftp-url"].as<string>() << std::endl;
+        }
+
+        if(vm.count("port")) {
+            std::cout << "port set to " << vm["port"].as<int>() << std::endl;
+        }
+    }
+    catch (exception& e) {
+        std::cerr << "error: " << e.what() << std::endl;
+        return false;
+    }
+
+    return true;
 }
+
 
 /** \brief Determine if a ip address is valid
  *

@@ -5,17 +5,30 @@ A distribute open source hardware testing server.
 
 ### Features
 
-* 1. Supports fetch config from FTP server.
-* 2. Asys communication Mode.
-* 3. MDNS server discovery.
-* 4. Auto parse avrdue's output log.
+* 1. Automatically download *.bin *.yaml from FTP server.
+* 2. Asys communication Mode in both serial and socket.
+* 3. mDNS service advertiser/discovery.
+* 4. Auto parse 3-rd party tool's output log.
+* 5. Supports multiple client connection.
+* 6. Supports most of the open source hardware main board, such as arduino,seeeduino.
 
 ### Dependency 
 
 * 1. Boost
 * 2. Curl
 
+### How to Make
+
+At present, the cubeServer is developed by CodeBlocks and MinGW.
+
+### About cube Project
+
+This project consists of two main parts.
+* (1). cubeServer : the controller of testing 
+* (2). cubeTester : the view of testing. 
 
 ### Author
 
 * Oliver <lxtech2013@gmail.com>
+
+Any kinds of contribution from the community is warmly welcomed.
