@@ -40,6 +40,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Call C functions in C++, Must include this */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef _WIN32
 #include <winsock2.h>
 #else
@@ -58,6 +63,7 @@
 #else
   #define DEBUG_PRINTF(...) ((void) 0)
 #endif
+
 
 
 struct rr_data_srv {
@@ -175,6 +181,8 @@ struct mdns_pkt {
 	struct rr_list *rr_add;		// additional RRs
 };
 
+void help();
+
 struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len);
 
 void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id);
@@ -213,5 +221,9 @@ uint8_t *join_nlabel(const uint8_t *n1, const uint8_t *n2);
 static inline int cmp_nlabel(const uint8_t *L1, const uint8_t *L2) {
 	return strcmp((char *) L1, (char *) L2);
 }
+
+#ifdef __cplusplus
+}                    /* cplusplus */
+#endif
 
 #endif /*!__MDNS_H__*/

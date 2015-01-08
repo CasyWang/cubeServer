@@ -27,10 +27,10 @@
  */
 
 #include "mdns.h"
-#include <stdint.h>
-#include <stdlib.h>
+//#include <stdint.h>
+//#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+//#include <string.h>
 #include <assert.h>
 
 #ifdef _WIN32
@@ -51,6 +51,11 @@ struct name_comp {
 
 	struct name_comp *next;
 };
+
+//test
+void help() {
+    printf("help\n");
+}
 
 // ----- label functions -----
 
@@ -754,6 +759,7 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 
 	off = p - pkt_buf;
 
+    printf("num_qn:%d\n", pkt->num_qn);
 	// parse questions
 	for (i = 0; i < pkt->num_qn; i++) {
 		size_t l = mdns_parse_qn(pkt_buf, pkt_len, off, pkt);

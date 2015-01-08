@@ -15,11 +15,25 @@
 					<Add option="-g" />
 					<Add directory="D:/SoftTools/boost_1_57_0" />
 					<Add directory="include" />
+					<Add directory="D:/SoftTools/curl-7.39.0" />
+					<Add directory="D:/SoftTools/curl-7.39.0/include" />
+					<Add directory="D:/SoftTools/pthread_win32/Pre-built.2/include" />
+					<Add directory="D:/UtilTools/code_blocks/CodeBlocks/MinGW/include" />
 				</Compiler>
 				<Linker>
 					<Add library="D:\SoftTools\boost_1_57_0\stage\lib\libboost_system-mgw47-mt-d-1_57.a" />
 					<Add library="D:\SoftTools\boost_1_57_0\stage\lib\libboost_thread-mgw47-mt-d-1_57.a" />
+					<Add library="D:\SoftTools\curl-7.39.0\lib\libcurl.a" />
+					<Add library="D:\SoftTools\curl-7.39.0\lib\libcurldll.a" />
+					<Add library="D:\SoftTools\boost_1_57_0\stage\lib\libboost_filesystem-mgw47-mt-d-1_57.a" />
+					<Add library="D:\SoftTools\boost_1_57_0\stage\lib\libboost_program_options-mgw47-mt-d-1_57.a" />
+					<Add library="D:\SoftTools\pthread_win32\Pre-built.2\lib\x86\libpthreadGC2.a" />
+					<Add library="D:\UtilTools\code_blocks\CodeBlocks\MinGW\lib\libws2_32.a" />
+					<Add library="D:\SoftTools\boost_1_57_0\stage\lib\libboost_system-mgw47-mt-d-1_57.a" />
 					<Add directory="D:/SoftTools/boost_1_57_0/stage/lib" />
+					<Add directory="D:/SoftTools/curl-7.39.0/lib" />
+					<Add directory="D:/SoftTools/pthread_win32/Pre-built.2/lib/x86" />
+					<Add directory="D:/UtilTools/code_blocks/CodeBlocks/MinGW/lib" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -41,16 +55,24 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="include/CoreController.h" />
+		<Unit filename="include/FtpClient.h" />
 		<Unit filename="include/MainBoardTester.h" />
 		<Unit filename="include/Protocol.h">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="include/Queue.h" />
 		<Unit filename="include/TesterBase.h" />
+		<Unit filename="include/mdns.h" />
+		<Unit filename="include/mdnsAdvertiser.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/CoreController.cpp" />
+		<Unit filename="src/FtpClient.cpp" />
 		<Unit filename="src/MainBoardTester.cpp" />
 		<Unit filename="src/Queue.cpp" />
+		<Unit filename="src/mdns.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/mdnsAdvertiser.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
