@@ -13,7 +13,7 @@ A distribute open source hardware testing server.
 * 6. Supports most of the open source hardware main board, such as arduino,seeeduino.
 
 #### Architecture
-![Create new testing solution](https://raw.githubusercontent.com/CasyWang/cubeServer/f5298411e6425828cae643d334fe9b902aa5889d/doc/cubeTest4.jpg)
+![Create new testing solution](https://raw.githubusercontent.com/CasyWang/cubeServer/dev/doc/cubeTest4.jpg)
 
 ### Dependency 
 
