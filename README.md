@@ -27,6 +27,14 @@ This project consists of two main parts.
 * (1). cubeServer : the controller of testing 
 * (2). cubeTester : the view of testing. 
 
+### cubeTester UI:
+
+![Automatically detect main board](https://raw.githubusercontent.com/CasyWang/cubeServer/f5298411e6425828cae643d334fe9b902aa5889d/doc/cubeTest1.jpg)
+
+![Testing](https://raw.githubusercontent.com/CasyWang/cubeServer/f5298411e6425828cae643d334fe9b902aa5889d/doc/cubeTest2.jpg)
+
+![Create new testing solution](https://raw.githubusercontent.com/CasyWang/cubeServer/f5298411e6425828cae643d334fe9b902aa5889d/doc/cubeTest3.jpg)
+
 ### Author
 
 * Oliver <lxtech2013@gmail.com>
